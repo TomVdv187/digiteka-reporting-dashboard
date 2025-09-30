@@ -1,0 +1,16 @@
+{
+  "framework": "nextjs",
+  "buildCommand": "npm run build",
+  "devCommand": "npm run dev",
+  "installCommand": "npm install",
+  "env": {
+    "DIGITEKA_API_KEY": "@digiteka_api_key",
+    "DIGITEKA_BASE_URL": "@digiteka_base_url",
+    "DIGITEKA_SITE_ID": "@digiteka_site_id"
+  },
+  "functions": {
+    "app/api/**/*.js": {
+      "maxDuration": 30
+    }
+  }
+}
