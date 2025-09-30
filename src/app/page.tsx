@@ -16,9 +16,9 @@ export default function Home() {
   const [error, setError] = useState<string | null>(null);
 
   const apiClient = new DigitekaApiClient({
-    apiKey: process.env.NEXT_PUBLIC_DIGITEKA_API_KEY || 'demo_key',
-    baseUrl: process.env.NEXT_PUBLIC_DIGITEKA_BASE_URL || 'https://api.digiteka.com/v1',
-    siteId: process.env.NEXT_PUBLIC_DIGITEKA_SITE_ID
+    apiKey: typeof window !== 'undefined' ? (process.env.NEXT_PUBLIC_DIGITEKA_API_KEY || 'demo_key') : 'demo_key',
+    baseUrl: typeof window !== 'undefined' ? (process.env.NEXT_PUBLIC_DIGITEKA_BASE_URL || 'https://api.digiteka.com/v1') : 'https://api.digiteka.com/v1',
+    siteId: typeof window !== 'undefined' ? process.env.NEXT_PUBLIC_DIGITEKA_SITE_ID : undefined
   });
 
   const isDemoMode = apiClient.getDemoMode();
@@ -84,50 +84,31 @@ export default function Home() {
   }
 
   return (
-    <div className="min-h-screen bg-slate-50">
-      <div className="container mx-auto px-6 py-0">
-        <div className="gradient-bg relative overflow-hidden">
-          <div className="absolute inset-0 bg-black bg-opacity-10"></div>
-          <div className="relative z-10 px-8 py-12">
-            <div className="flex items-center justify-between">
-              <div className="animate-fade-in">
-                <div className="flex items-center space-x-4 mb-4">
-                  <div className="w-12 h-12 bg-white bg-opacity-20 rounded-lg flex items-center justify-center backdrop-blur-sm">
-                    <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
-                    </svg>
-                  </div>
-                  <div>
-                    <h1 className="text-4xl font-bold text-white mb-2">Digiteka Analytics</h1>
-                    <p className="text-white text-opacity-90 text-lg">Professional video content performance insights</p>
-                  </div>
-                </div>
-              </div>
-              {isDemoMode && (
-                <div className="glass-effect px-6 py-4 rounded-xl animate-scale-in">
-                  <div className="flex items-center text-indigo-900">
-                    <div className="w-8 h-8 bg-amber-400 rounded-full flex items-center justify-center mr-3">
-                      <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                      </svg>
-                    </div>
-                    <div>
-                      <div className="font-semibold text-gray-900">Demo Mode Active</div>
-                      <div className="text-sm text-gray-600">Sample data • Add API credentials for live data</div>
-                    </div>
-                  </div>
-                </div>
-              )}
+    <div className="min-h-screen bg-gray-50">
+      {/* Dark Header */}
+      <div className="bg-gray-900 text-white">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex items-center justify-between h-16">
+            <div className="flex items-center">
+              <h1 className="text-xl font-semibold">Digiteka Analytics</h1>
             </div>
+            {isDemoMode && (
+              <div className="bg-yellow-500 text-yellow-900 px-3 py-1 rounded-md text-sm font-medium">
+                Demo Mode
+              </div>
+            )}
           </div>
         </div>
+      </div>
 
-        <div className="px-6 py-8 space-y-8">
+      {/* Main Content */}
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div className="space-y-6">
           <DateRangePicker onDateChange={fetchData} />
 
           {report && (
             <>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-12 -mt-8 relative z-20">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
               <MetricsCard
                 title="Total Views"
                 value={report.summary.total_views.toLocaleString()}
@@ -158,33 +139,27 @@ export default function Home() {
               />
             </div>
 
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
-              <ViewsChart data={report.metrics} />
-              <RevenueChart data={report.metrics} />
-              <GeographyChart data={report.metrics} />
-              <DeviceChart data={report.metrics} />
-            </div>
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <ViewsChart data={report.metrics} />
+                <RevenueChart data={report.metrics} />
+                <GeographyChart data={report.metrics} />
+                <DeviceChart data={report.metrics} />
+              </div>
 
-            <div className="mb-8 flex flex-wrap gap-4 justify-center">
-              <button
-                onClick={handleExportCSV}
-                className="flex items-center space-x-2 bg-gradient-to-r from-emerald-600 to-emerald-700 text-white px-8 py-4 rounded-xl hover:from-emerald-700 hover:to-emerald-800 transition-all duration-200 shadow-lg hover:shadow-xl font-medium"
-              >
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                </svg>
-                <span>Export CSV</span>
-              </button>
-              <button
-                onClick={handleExportJSON}
-                className="flex items-center space-x-2 bg-gradient-to-r from-indigo-600 to-indigo-700 text-white px-8 py-4 rounded-xl hover:from-indigo-700 hover:to-indigo-800 transition-all duration-200 shadow-lg hover:shadow-xl font-medium"
-              >
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 9l3 3-3 3m5 0h3M5 20h14a2 2 0 002-2V6a2 2 0 00-2-2H5a2 2 0 00-2 2v14a2 2 0 002 2z" />
-                </svg>
-                <span>Export JSON</span>
-              </button>
-            </div>
+              <div className="flex gap-4">
+                <button
+                  onClick={handleExportCSV}
+                  className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition-colors"
+                >
+                  Export CSV
+                </button>
+                <button
+                  onClick={handleExportJSON}
+                  className="bg-gray-600 text-white px-4 py-2 rounded-md hover:bg-gray-700 transition-colors"
+                >
+                  Export JSON
+                </button>
+              </div>
 
               <DataTable data={report.metrics} onExport={handleExportCSV} />
             </>
