@@ -2,12 +2,20 @@ import { DigitekaReport, DigitekaApiConfig, DigitekaMetrics } from '@/types/digi
 
 export class DigitekaApiClient {
   private config: DigitekaApiConfig;
+  private isDemoMode: boolean;
 
   constructor(config: DigitekaApiConfig) {
     this.config = config;
+    this.isDemoMode = !config.apiKey || config.apiKey === 'demo_key' || config.apiKey === 'your_api_key_here';
   }
 
   async fetchReports(startDate: string, endDate: string): Promise<DigitekaReport> {
+    if (this.isDemoMode) {
+      console.log('Running in demo mode with mock data');
+      await new Promise(resolve => setTimeout(resolve, 500));
+      return this.getMockData(startDate, endDate);
+    }
+
     try {
       const response = await fetch(`${this.config.baseUrl}/reports`, {
         method: 'POST',
@@ -34,6 +42,10 @@ export class DigitekaApiClient {
       console.error('Error fetching Digiteka reports:', error);
       return this.getMockData(startDate, endDate);
     }
+  }
+
+  public getDemoMode(): boolean {
+    return this.isDemoMode;
   }
 
   private transformResponse(apiData: any): DigitekaReport {
