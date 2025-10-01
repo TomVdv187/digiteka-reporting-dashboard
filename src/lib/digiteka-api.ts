@@ -10,6 +10,7 @@ export class DigitekaApiClient {
     this.isDemoMode = !config.email || !config.password || 
                      config.email === 'email@example.com' || 
                      config.password === 'MotDePasse';
+    console.log('DigitekaApiClient initialized', { isDemoMode: this.isDemoMode, email: config.email });
   }
 
   async fetchReports(startDate: string, endDate: string): Promise<DigitekaReport> {
@@ -48,6 +49,7 @@ export class DigitekaApiClient {
       return this.transformResponse(data);
     } catch (error) {
       console.error('Error fetching Digiteka reports:', error);
+      console.log('Authentication successful, but reports endpoint not accessible. Using demo data.');
       return this.getMockData(startDate, endDate);
     }
   }
@@ -70,7 +72,7 @@ export class DigitekaApiClient {
       }
 
       const authData: DigitekaAuthResponse = await response.json();
-      this.authToken = authData.token;
+      this.authToken = authData.access_token;
       console.log('Successfully authenticated with Digiteka API');
     } catch (error) {
       console.error('Digiteka authentication failed:', error);

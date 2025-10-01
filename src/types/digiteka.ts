@@ -42,10 +42,8 @@ export interface DigitekaApiConfig {
 }
 
 export interface DigitekaAuthResponse {
-  token: string;
-  user: {
-    id: string;
-    email: string;
-    name?: string;
-  };
+  token_type: string;
+  access_token: string;
+  expires_at: string;
+  refresh_token: string;
 }
