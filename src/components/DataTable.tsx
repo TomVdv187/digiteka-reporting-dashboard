@@ -10,11 +10,10 @@ export function DataTable({ data, onExport }: DataTableProps) {
     return new Intl.NumberFormat().format(num);
   };
 
-  const formatCurrency = (num: number) => {
-    return new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: 'USD',
-    }).format(num);
+  const formatTime = (seconds: number) => {
+    const hours = Math.floor(seconds / 3600);
+    const minutes = Math.floor((seconds % 3600) / 60);
+    return `${hours}h ${minutes}m`;
   };
 
   const formatDate = (dateString: string) => {
@@ -51,19 +50,22 @@ export function DataTable({ data, onExport }: DataTableProps) {
                 Impressions
               </th>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Clicks
+                Avg Watch Time
               </th>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Revenue
+                Engagement Rate
               </th>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                 Completion Rate
               </th>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Geography
+                Shares
               </th>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Device
+                Likes
+              </th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                Category
               </th>
             </tr>
           </thead>
@@ -83,19 +85,22 @@ export function DataTable({ data, onExport }: DataTableProps) {
                   {formatNumber(metric.impressions)}
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                  {formatNumber(metric.clicks)}
+                  {formatTime(metric.avg_watch_time)}
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                  {formatCurrency(metric.revenue)}
+                  {metric.engagement_rate.toFixed(1)}%
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                   {metric.completion_rate.toFixed(1)}%
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                  {metric.geography || '-'}
+                  {formatNumber(metric.shares)}
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                  {metric.device_type || '-'}
+                  {formatNumber(metric.likes)}
+                </td>
+                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                  {metric.content_category || '-'}
                 </td>
               </tr>
             ))}

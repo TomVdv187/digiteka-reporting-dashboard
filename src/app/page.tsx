@@ -6,7 +6,7 @@ import { DigitekaReport } from '@/types/digiteka';
 import { MetricsCard } from '@/components/MetricsCard';
 import { DataTable } from '@/components/DataTable';
 import { DateRangePicker } from '@/components/DateRangePicker';
-import { ViewsChart, RevenueChart, GeographyChart, DeviceChart } from '@/components/Charts';
+import { ViewsChart, EngagementChart, GeographyChart, SocialChart } from '@/components/Charts';
 import { EyeIcon, DollarSignIcon, UsersIcon, MousePointerClickIcon } from '@/components/icons/Icons';
 import { exportToCSV, exportToJSON } from '@/utils/export';
 
@@ -117,33 +117,33 @@ export default function Home() {
                 trend={{ value: 12.5, isPositive: true }}
               />
               <MetricsCard
-                title="Total Revenue"
-                value={`$${report.summary.total_revenue.toLocaleString()}`}
-                icon={<DollarSignIcon />}
+                title="Total Watch Time"
+                value={`${Math.floor(report.summary.total_watch_time / 3600).toLocaleString()}h`}
+                icon={<svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>}
                 color="emerald"
-                trend={{ value: 8.3, isPositive: true }}
+                trend={{ value: 15.2, isPositive: true }}
               />
               <MetricsCard
-                title="Completion Rate"
-                value={`${report.summary.avg_completion_rate.toFixed(1)}%`}
-                icon={<UsersIcon />}
+                title="Engagement Rate"
+                value={`${report.summary.avg_engagement_rate.toFixed(1)}%`}
+                icon={<svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" /></svg>}
                 color="indigo"
-                trend={{ value: 3.2, isPositive: false }}
+                trend={{ value: 3.2, isPositive: true }}
               />
               <MetricsCard
-                title="Total Impressions"
-                value={report.summary.total_impressions.toLocaleString()}
-                icon={<MousePointerClickIcon />}
+                title="Total Shares"
+                value={report.summary.total_shares.toLocaleString()}
+                icon={<svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.367 2.684 3 3 0 00-5.367-2.684z" /></svg>}
                 color="amber"
-                trend={{ value: 15.7, isPositive: true }}
+                trend={{ value: 22.4, isPositive: true }}
               />
             </div>
 
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 <ViewsChart data={report.metrics} />
-                <RevenueChart data={report.metrics} />
+                <EngagementChart data={report.metrics} />
                 <GeographyChart data={report.metrics} />
-                <DeviceChart data={report.metrics} />
+                <SocialChart data={report.metrics} />
               </div>
 
               <div className="flex gap-4">

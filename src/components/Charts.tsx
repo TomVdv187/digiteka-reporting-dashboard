@@ -32,26 +32,27 @@ export function ViewsChart({ data }: ChartsProps) {
   );
 }
 
-export function RevenueChart({ data }: ChartsProps) {
+export function EngagementChart({ data }: ChartsProps) {
   const chartData = data.map(item => ({
     date: new Date(item.timestamp).toLocaleDateString(),
-    revenue: item.revenue,
-    clicks: item.clicks,
+    engagement_rate: item.engagement_rate,
+    completion_rate: item.completion_rate,
+    bounce_rate: item.bounce_rate,
   }));
 
   return (
     <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-      <h3 className="text-lg font-semibold text-gray-900 mb-4">Revenue & Clicks</h3>
+      <h3 className="text-lg font-semibold text-gray-900 mb-4">Engagement Metrics</h3>
       <ResponsiveContainer width="100%" height={300}>
         <LineChart data={chartData}>
           <CartesianGrid strokeDasharray="3 3" />
           <XAxis dataKey="date" />
-          <YAxis yAxisId="left" />
-          <YAxis yAxisId="right" orientation="right" />
+          <YAxis />
           <Tooltip />
           <Legend />
-          <Bar yAxisId="left" dataKey="revenue" fill="#8884d8" />
-          <Line yAxisId="right" type="monotone" dataKey="clicks" stroke="#ff7300" />
+          <Line type="monotone" dataKey="engagement_rate" stroke="#10B981" name="Engagement Rate" />
+          <Line type="monotone" dataKey="completion_rate" stroke="#3B82F6" name="Completion Rate" />
+          <Line type="monotone" dataKey="bounce_rate" stroke="#EF4444" name="Bounce Rate" />
         </LineChart>
       </ResponsiveContainer>
     </div>
@@ -99,30 +100,26 @@ export function GeographyChart({ data }: ChartsProps) {
   );
 }
 
-export function DeviceChart({ data }: ChartsProps) {
-  const deviceData = data.reduce((acc: Record<string, number>, item) => {
-    if (item.device_type) {
-      acc[item.device_type] = (acc[item.device_type] || 0) + item.views;
-    }
-    return acc;
-  }, {});
-
-  const chartData = Object.entries(deviceData).map(([device, views]) => ({
-    device,
-    views,
+export function SocialChart({ data }: ChartsProps) {
+  const chartData = data.map(item => ({
+    date: new Date(item.timestamp).toLocaleDateString(),
+    shares: item.shares,
+    likes: item.likes,
   }));
 
   return (
     <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-      <h3 className="text-lg font-semibold text-gray-900 mb-4">Views by Device Type</h3>
+      <h3 className="text-lg font-semibold text-gray-900 mb-4">Social Interactions</h3>
       <ResponsiveContainer width="100%" height={300}>
-        <BarChart data={chartData}>
+        <AreaChart data={chartData}>
           <CartesianGrid strokeDasharray="3 3" />
-          <XAxis dataKey="device" />
+          <XAxis dataKey="date" />
           <YAxis />
           <Tooltip />
-          <Bar dataKey="views" fill="#3B82F6" />
-        </BarChart>
+          <Legend />
+          <Area type="monotone" dataKey="likes" stackId="1" stroke="#F59E0B" fill="#F59E0B" />
+          <Area type="monotone" dataKey="shares" stackId="2" stroke="#8B5CF6" fill="#8B5CF6" />
+        </AreaChart>
       </ResponsiveContainer>
     </div>
   );

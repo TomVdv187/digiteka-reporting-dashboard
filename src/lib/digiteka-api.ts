@@ -27,7 +27,7 @@ export class DigitekaApiClient {
           start_date: startDate,
           end_date: endDate,
           site_id: this.config.siteId,
-          metrics: ['views', 'impressions', 'clicks', 'revenue', 'duration', 'completion_rate'],
+          metrics: ['views', 'impressions', 'clicks', 'watch_time', 'engagement_rate', 'completion_rate', 'shares', 'likes'],
           dimensions: ['geography', 'device_type', 'content_id']
         }),
       });
@@ -60,47 +60,69 @@ export class DigitekaApiClient {
         views: item.views || 0,
         impressions: item.impressions || 0,
         clicks: item.clicks || 0,
-        revenue: item.revenue || 0,
-        duration: item.duration || 0,
+        watch_time: item.watch_time || 0,
+        avg_watch_time: item.avg_watch_time || 0,
+        engagement_rate: item.engagement_rate || 0,
         completion_rate: item.completion_rate || 0,
+        bounce_rate: item.bounce_rate || 0,
+        shares: item.shares || 0,
+        likes: item.likes || 0,
+        duration: item.duration || 0,
         geography: item.geography,
         device_type: item.device_type,
         content_id: item.content_id,
-        content_title: item.content_title
+        content_title: item.content_title,
+        content_category: item.content_category
       })) || [],
       summary: {
         total_views: apiData.summary?.total_views || 0,
-        total_revenue: apiData.summary?.total_revenue || 0,
+        total_watch_time: apiData.summary?.total_watch_time || 0,
+        avg_engagement_rate: apiData.summary?.avg_engagement_rate || 0,
         avg_completion_rate: apiData.summary?.avg_completion_rate || 0,
-        total_impressions: apiData.summary?.total_impressions || 0
+        total_impressions: apiData.summary?.total_impressions || 0,
+        total_shares: apiData.summary?.total_shares || 0
       }
     };
   }
 
   private getMockData(startDate: string, endDate: string): DigitekaReport {
-    const mockMetrics: DigitekaMetrics[] = Array.from({ length: 10 }, (_, i) => ({
-      id: `metric_${i + 1}`,
-      timestamp: new Date(Date.now() - (i * 24 * 60 * 60 * 1000)).toISOString(),
-      views: Math.floor(Math.random() * 10000) + 1000,
-      impressions: Math.floor(Math.random() * 50000) + 5000,
-      clicks: Math.floor(Math.random() * 1000) + 100,
-      revenue: Math.floor(Math.random() * 500) + 50,
-      duration: Math.floor(Math.random() * 300) + 30,
-      completion_rate: Math.floor(Math.random() * 100) + 1,
-      geography: ['US', 'FR', 'DE', 'UK', 'ES'][Math.floor(Math.random() * 5)],
-      device_type: ['desktop', 'mobile', 'tablet'][Math.floor(Math.random() * 3)],
-      content_id: `content_${i + 1}`,
-      content_title: `Video Content ${i + 1}`
-    }));
+    const mockMetrics: DigitekaMetrics[] = Array.from({ length: 10 }, (_, i) => {
+      const views = Math.floor(Math.random() * 10000) + 1000;
+      const duration = Math.floor(Math.random() * 300) + 30;
+      const watchTime = Math.floor(Math.random() * 200) + 20;
+      
+      return {
+        id: `metric_${i + 1}`,
+        timestamp: new Date(Date.now() - (i * 24 * 60 * 60 * 1000)).toISOString(),
+        views: views,
+        impressions: Math.floor(Math.random() * 50000) + 5000,
+        clicks: Math.floor(Math.random() * 1000) + 100,
+        watch_time: watchTime * views, // total watch time
+        avg_watch_time: watchTime, // average watch time per view
+        engagement_rate: Math.floor(Math.random() * 40) + 10, // 10-50%
+        completion_rate: Math.floor(Math.random() * 60) + 20, // 20-80%
+        bounce_rate: Math.floor(Math.random() * 30) + 10, // 10-40%
+        shares: Math.floor(Math.random() * 500) + 10,
+        likes: Math.floor(Math.random() * 2000) + 50,
+        duration: duration,
+        geography: ['US', 'FR', 'DE', 'UK', 'ES'][Math.floor(Math.random() * 5)],
+        device_type: ['desktop', 'mobile', 'tablet'][Math.floor(Math.random() * 3)],
+        content_id: `content_${i + 1}`,
+        content_title: `Video Content ${i + 1}`,
+        content_category: ['Entertainment', 'Educational', 'News', 'Sports', 'Music'][Math.floor(Math.random() * 5)]
+      };
+    });
 
     return {
       period: { start: startDate, end: endDate },
       metrics: mockMetrics,
       summary: {
         total_views: mockMetrics.reduce((sum, m) => sum + m.views, 0),
-        total_revenue: mockMetrics.reduce((sum, m) => sum + m.revenue, 0),
+        total_watch_time: mockMetrics.reduce((sum, m) => sum + m.watch_time, 0),
+        avg_engagement_rate: mockMetrics.reduce((sum, m) => sum + m.engagement_rate, 0) / mockMetrics.length,
         avg_completion_rate: mockMetrics.reduce((sum, m) => sum + m.completion_rate, 0) / mockMetrics.length,
-        total_impressions: mockMetrics.reduce((sum, m) => sum + m.impressions, 0)
+        total_impressions: mockMetrics.reduce((sum, m) => sum + m.impressions, 0),
+        total_shares: mockMetrics.reduce((sum, m) => sum + m.shares, 0)
       }
     };
   }
