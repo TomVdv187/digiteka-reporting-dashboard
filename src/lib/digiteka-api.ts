@@ -1,12 +1,15 @@
-import { DigitekaReport, DigitekaApiConfig, DigitekaMetrics } from '@/types/digiteka';
+import { DigitekaReport, DigitekaApiConfig, DigitekaMetrics, DigitekaAuthResponse } from '@/types/digiteka';
 
 export class DigitekaApiClient {
   private config: DigitekaApiConfig;
   private isDemoMode: boolean;
+  private authToken: string | null = null;
 
   constructor(config: DigitekaApiConfig) {
     this.config = config;
-    this.isDemoMode = !config.apiKey || config.apiKey === 'demo_key' || config.apiKey === 'your_api_key_here';
+    this.isDemoMode = !config.email || !config.password || 
+                     config.email === 'email@example.com' || 
+                     config.password === 'MotDePasse';
   }
 
   async fetchReports(startDate: string, endDate: string): Promise<DigitekaReport> {
@@ -17,22 +20,27 @@ export class DigitekaApiClient {
     }
 
     try {
+      // Ensure we have a valid auth token
+      if (!this.authToken) {
+        await this.authenticate();
+      }
+
+      // Try to fetch reports from Digiteka API
+      // Note: We'll need to determine the correct endpoint for reports
       const response = await fetch(`${this.config.baseUrl}/reports`, {
-        method: 'POST',
+        method: 'GET',
         headers: {
-          'Authorization': `Bearer ${this.config.apiKey}`,
+          'Authorization': `Bearer ${this.authToken}`,
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({
-          start_date: startDate,
-          end_date: endDate,
-          site_id: this.config.siteId,
-          metrics: ['views', 'impressions', 'clicks', 'watch_time', 'engagement_rate', 'completion_rate', 'shares', 'likes'],
-          dimensions: ['geography', 'device_type', 'content_id']
-        }),
       });
 
       if (!response.ok) {
+        if (response.status === 401) {
+          // Token expired, try to re-authenticate
+          await this.authenticate();
+          return this.fetchReports(startDate, endDate);
+        }
         throw new Error(`API request failed: ${response.status}`);
       }
 
@@ -41,6 +49,32 @@ export class DigitekaApiClient {
     } catch (error) {
       console.error('Error fetching Digiteka reports:', error);
       return this.getMockData(startDate, endDate);
+    }
+  }
+
+  private async authenticate(): Promise<void> {
+    try {
+      const response = await fetch(`${this.config.baseUrl}/auth/login`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          email: this.config.email,
+          password: this.config.password,
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error(`Authentication failed: ${response.status}`);
+      }
+
+      const authData: DigitekaAuthResponse = await response.json();
+      this.authToken = authData.token;
+      console.log('Successfully authenticated with Digiteka API');
+    } catch (error) {
+      console.error('Digiteka authentication failed:', error);
+      throw error;
     }
   }
 

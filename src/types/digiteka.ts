@@ -36,7 +36,16 @@ export interface DigitekaReport {
 }
 
 export interface DigitekaApiConfig {
-  apiKey: string;
+  email: string;
+  password: string;
   baseUrl: string;
-  siteId?: string;
+}
+
+export interface DigitekaAuthResponse {
+  token: string;
+  user: {
+    id: string;
+    email: string;
+    name?: string;
+  };
 }

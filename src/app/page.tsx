@@ -16,9 +16,9 @@ export default function Home() {
   const [error, setError] = useState<string | null>(null);
 
   const apiClient = new DigitekaApiClient({
-    apiKey: typeof window !== 'undefined' ? (process.env.NEXT_PUBLIC_DIGITEKA_API_KEY || 'demo_key') : 'demo_key',
-    baseUrl: typeof window !== 'undefined' ? (process.env.NEXT_PUBLIC_DIGITEKA_BASE_URL || 'https://api.digiteka.com/v1') : 'https://api.digiteka.com/v1',
-    siteId: typeof window !== 'undefined' ? process.env.NEXT_PUBLIC_DIGITEKA_SITE_ID : undefined
+    email: typeof window !== 'undefined' ? (process.env.NEXT_PUBLIC_DIGITEKA_EMAIL || 'email@example.com') : 'email@example.com',
+    password: typeof window !== 'undefined' ? (process.env.NEXT_PUBLIC_DIGITEKA_PASSWORD || 'MotDePasse') : 'MotDePasse',
+    baseUrl: typeof window !== 'undefined' ? (process.env.NEXT_PUBLIC_DIGITEKA_BASE_URL || 'https://ws.digiteka.com/api') : 'https://ws.digiteka.com/api'
   });
 
   const isDemoMode = apiClient.getDemoMode();
