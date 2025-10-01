@@ -26,14 +26,39 @@ export class DigitekaApiClient {
         await this.authenticate();
       }
 
-      // Try to fetch reports from Digiteka API
-      // Note: We'll need to determine the correct endpoint for reports
-      const response = await fetch(`${this.config.baseUrl}/reports`, {
-        method: 'GET',
+      // Try to fetch reports from Digiteka API using the correct studio/generate endpoint
+      const requestBody = {
+        ranges: [{
+          startDate: startDate,
+          endDate: endDate,
+          period: "P"
+        }, null],
+        data: [
+          "streams", 
+          "completion_video_25_per", 
+          "completion_video_50_per", 
+          "completion_video_75_per", 
+          "completion_video_100_per",
+          "video_duration",
+          "percent_completed",
+          "average_video_duration",
+          "displays",
+          "triggers"
+        ],
+        dimensions: ["device", "country"],
+        filters: [],
+        granularity: "day",
+        context: "instream",
+        subcontext: "editor"
+      };
+
+      const response = await fetch(`${this.config.baseUrl}/studio/generate`, {
+        method: 'POST',
         headers: {
           'Authorization': `Bearer ${this.authToken}`,
           'Content-Type': 'application/json',
         },
+        body: JSON.stringify(requestBody)
       });
 
       if (!response.ok) {
@@ -46,7 +71,7 @@ export class DigitekaApiClient {
       }
 
       const data = await response.json();
-      return this.transformResponse(data);
+      return this.transformResponse(data, startDate, endDate);
     } catch (error) {
       console.error('Error fetching Digiteka reports:', error);
       console.log('Authentication successful, but reports endpoint not accessible. Using demo data.');
@@ -84,39 +109,65 @@ export class DigitekaApiClient {
     return this.isDemoMode;
   }
 
-  private transformResponse(apiData: any): DigitekaReport {
+  private transformResponse(apiData: any, startDate: string, endDate: string): DigitekaReport {
+    console.log('Digiteka API Response:', JSON.stringify(apiData, null, 2));
+    
+    // The Digiteka API returns data with body array containing headers and body data
+    const dataRows = apiData.body || [];
+    const columns = apiData.columns || [];
+    
+    // Map column IDs to their indices for easier access
+    const columnMap: { [key: string]: number } = {};
+    columns.forEach((col: any, index: number) => {
+      columnMap[col.id] = index;
+    });
+
+    const metrics = dataRows.map((item: any, index: number) => {
+      const headers = item.headers || []; // [device, country, date]
+      const values = item.body?.[0] || []; // Data values array
+      
+      return {
+        id: `metric_${index}`,
+        timestamp: headers[2] || new Date().toISOString(), // Date from headers
+        views: parseInt(values[columnMap['streams']] || 0),
+        impressions: parseInt(values[columnMap['displays']] || 0),
+        clicks: parseInt(values[columnMap['triggers']] || 0),
+        watch_time: parseFloat(values[columnMap['video_duration']] || 0) * 3600, // Convert hours to seconds
+        avg_watch_time: parseFloat(values[columnMap['video_duration']] || 0) * 3600 / Math.max(parseInt(values[columnMap['streams']] || 1), 1), // Average per stream
+        engagement_rate: parseFloat(values[columnMap['percent_completed']] || 0),
+        completion_rate: parseFloat(values[columnMap['percent_completed']] || 0), // Use percent_completed as completion rate
+        bounce_rate: Math.max(0, 100 - parseFloat(values[columnMap['percent_completed']] || 0)), // Estimate bounce as inverse of completion
+        shares: 0, // Not available in current API call
+        likes: 0, // Not available in current API call
+        duration: parseFloat(values[columnMap['video_duration']] || 0) * 3600, // Total duration in seconds
+        geography: headers[1], // Country from headers
+        device_type: headers[0], // Device from headers
+        content_id: `content_${index}`,
+        content_title: `${headers[1]} ${headers[0]} Content ${index + 1}`,
+        content_category: 'Video'
+      };
+    });
+
+    // Calculate summary from all metrics
+    const totalViews = metrics.reduce((sum, m) => sum + m.views, 0);
+    const totalWatchTime = metrics.reduce((sum, m) => sum + m.watch_time, 0);
+    const avgEngagement = metrics.length > 0 ? metrics.reduce((sum, m) => sum + m.engagement_rate, 0) / metrics.length : 0;
+    const totalImpressions = metrics.reduce((sum, m) => sum + m.impressions, 0);
+    const totalShares = metrics.reduce((sum, m) => sum + m.shares, 0);
+
     return {
       period: {
-        start: apiData.period?.start || '',
-        end: apiData.period?.end || ''
+        start: startDate,
+        end: endDate
       },
-      metrics: apiData.data?.map((item: any) => ({
-        id: item.id || Math.random().toString(36),
-        timestamp: item.timestamp || new Date().toISOString(),
-        views: item.views || 0,
-        impressions: item.impressions || 0,
-        clicks: item.clicks || 0,
-        watch_time: item.watch_time || 0,
-        avg_watch_time: item.avg_watch_time || 0,
-        engagement_rate: item.engagement_rate || 0,
-        completion_rate: item.completion_rate || 0,
-        bounce_rate: item.bounce_rate || 0,
-        shares: item.shares || 0,
-        likes: item.likes || 0,
-        duration: item.duration || 0,
-        geography: item.geography,
-        device_type: item.device_type,
-        content_id: item.content_id,
-        content_title: item.content_title,
-        content_category: item.content_category
-      })) || [],
+      metrics: metrics,
       summary: {
-        total_views: apiData.summary?.total_views || 0,
-        total_watch_time: apiData.summary?.total_watch_time || 0,
-        avg_engagement_rate: apiData.summary?.avg_engagement_rate || 0,
-        avg_completion_rate: apiData.summary?.avg_completion_rate || 0,
-        total_impressions: apiData.summary?.total_impressions || 0,
-        total_shares: apiData.summary?.total_shares || 0
+        total_views: totalViews,
+        total_watch_time: totalWatchTime,
+        avg_engagement_rate: avgEngagement,
+        avg_completion_rate: avgEngagement, // Use engagement rate as completion rate
+        total_impressions: totalImpressions,
+        total_shares: totalShares
       }
     };
   }
